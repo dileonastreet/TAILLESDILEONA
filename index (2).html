@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>حساب المقاس المناسب</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      color: #1f2937;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 420px;
+      padding: 28px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 24px;
+      text-align: center;
+    }
+
+    .description {
+      margin: 0 0 24px;
+      color: #6b7280;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    label {
+      display: block;
+      margin: 14px 0 7px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 9px;
+      font-size: 16px;
+    }
+
+    input:focus {
+      outline: 2px solid #2563eb;
+      border-color: #2563eb;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 20px;
+      padding: 13px;
+      border: 0;
+      border-radius: 9px;
+      background: #2563eb;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    #result {
+      display: none;
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 10px;
+      background: #eff6ff;
+      text-align: center;
+      line-height: 1.7;
+    }
+
+    #result strong {
+      display: block;
+      color: #1d4ed8;
+      font-size: 24px;
+    }
+
+    .note {
+      margin-top: 18px;
+      color: #6b7280;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="card">
+    <h1>حساب المقاس المناسب</h1>
+    <p class="description">أدخل الطول والعرض لمعرفة المقاس المقترح.</p>
+
+    <form id="sizeForm">
+      <label for="height">الطول (سم)</label>
+      <input id="height" type="number" min="1" step="0.1"
+             placeholder="مثال: 175" required>
+
+      <label for="width">العرض (سم)</label>
+      <input id="width" type="number" min="1" step="0.1"
+             placeholder="مثال: 52" required>
+
+      <button type="submit">احسب المقاس</button>
+    </form>
+
+    <div id="result" role="status"></div>
+
+    <p class="note">
+      المقاسات المتاحة: S/31، M/32، L/33، XL/34، XXL/36.
+      النتيجة تقديرية وتعتمد حاليًا على العرض فقط.
+    </p>
+  </main>
+
+  <script>
+    const form = document.getElementById("sizeForm");
+    const result = document.getElementById("result");
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      const height = Number(document.getElementById("height").value);
+      const width = Number(document.getElementById("width").value);
+
+      if (height <= 0 || width <= 0) {
+        result.style.display = "block";
+        result.textContent = "يرجى إدخال أرقام أكبر من صفر.";
+        return;
+      }
+
+      // عدّل حدود العرض أدناه لتطابق جدول المقاسات الفعلي لديك.
+      let size;
+
+      if (width <= 46) {
+        size = "S / 31";
+      } else if (width <= 50) {
+        size = "M / 32";
+      } else if (width <= 54) {
+        size = "L / 33";
+      } else if (width <= 58) {
+        size = "XL / 34";
+      } else {
+        size = "XXL / 36";
+      }
+
+      result.style.display = "block";
+      result.innerHTML =
+        `المقاس المقترح بناءً على العرض (<LaTex>{width} سم):<strong></LaTex>{size}</strong>` +
+        `الطول المُدخل: ${height} سم`;
+    });
+  </script>
+</body>
+</html>
