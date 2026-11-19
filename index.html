@@ -29,64 +29,59 @@
         <button type="submit">اعرض مقاسي</button>
         <p class="error" id="error" role="alert"></p>
       </form>
-      <div class="size-guide"><p class="guide-title">مقاسات Baggy الرجالي</p><div class="sizes"><span class="size-chip">31</span><span class="size-chip">32</span><span class="size-chip">33</span><span class="size-chip">34</span><span class="size-chip">36</span></div></div>
+      <div class="size-guide"><p class="guide-title">مقاسات Baggy الرجالي</p><div class="sizes"><span class="size-chip">31S · خصر 79 سم</span><span class="size-chip">32M · خصر 81 سم</span><span class="size-chip">33L · خصر 84 سم</span><span class="size-chip">34XL · خصر 86 سم</span><span class="size-chip">36XXL · خصر 91 سم</span></div></div>
     </section>
 
     <section class="result" id="result" aria-live="polite">
       <div class="result-main"><div class="tag-icon" aria-hidden="true">♧</div><div><div class="result-caption">مقاس Baggy المقترح</div><div class="size-line"><strong class="size" id="size">32</strong><span class="size-number">EU / FR</span></div></div></div>
       <div class="result-stat"><span>الطول والوزن</span><strong id="bodyStats">175 سم · 75 كغ</strong></div>
-      <div class="result-stat"><span>طول الرجل الداخلي</span><strong id="inseam">82 سم</strong></div>
-      <div class="result-stat"><span>طول البنطال</span><strong id="lengthLabel">L32</strong></div>
+      <div class="result-stat"><span>محيط الخصر حسب الجدول</span><strong id="waistLabel">81 سم</strong></div>
+      <div class="result-stat"><span>النطاق الأساسي للوزن</span><strong id="weightRange">65–75 كغ</strong></div>
       <p class="result-note" id="resultNote"></p>
     </section>
-    <p class="hint"><b>لأفضل نتيجة:</b> أدخل الطول بالسنتيمتر والوزن بالكيلوغرام. طول الرجل الداخلي يُختار من جدول المقاسات المرسل، ومقاس الخصر يُقدّر من الطول والوزن.</p>
+    <p class="hint"><b>طريقة الحساب:</b> المقاس الأساسي حسب الوزن، ثم ينقص درجة إذا كان الطول أقل من 168 سم أو يزيد درجة إذا تجاوز 182 سم. عند الحد بين نطاقين يُختار الأصغر، والنتيجة تقديرية لأن المقاس الفعلي قد يختلف حسب القَصّة وبنية الجسم.</p>
   </main>
   <script>
-    // المقاسات المتاحة لدى المستخدم. قيم الخصر/الحوض من جدول القياسات المرسل؛ المقاسات 31 و33 استيفاء بين الدرجات المتوفرة.
-    const garmentChart = [
-      {size:31, waist:78, hip:108, inseam:82},
-      {size:32, waist:80, hip:110, inseam:82},
-      {size:33, waist:82, hip:112, inseam:84},
-      {size:34, waist:84, hip:114, inseam:84},
-      {size:36, waist:88, hip:118, inseam:84}
+    // جدول DILEONA Baggy كما زوده المستخدم: المقاس الأساسي حسب الوزن، ثم تعديل درجة واحدة حسب الطول.
+    const sizes = [
+      {size:'31S', waist:79, min:55, max:65},
+      {size:'32M', waist:81, min:65, max:75},
+      {size:'33L', waist:84, min:75, max:85},
+      {size:'34XL', waist:86, min:85, max:95},
+      {size:'36XXL', waist:91, min:95, max:110}
     ];
     const form=document.getElementById('sizeForm');
     const result=document.getElementById('result');
     const error=document.getElementById('error');
 
-    // تقدير مبسط للوزن المتوقع عند كل مقاس حسب الطول؛ يختار أقرب نطاق BMI.
-    // المقاسات هنا محصورة في المقاسات المتوفرة لدى المستخدم وليست جدول Zara.
     function estimateSize(heightCm, weightKg){
-      const height=heightCm/100;
-      const bmi=weightKg/(height*height);
-      const thresholds=[19,21,23,25,27];
-      const index=thresholds.findIndex(limit=>bmi<limit);
-      return garmentChart[index<0?5:index];
-    }
-    function estimateInseam(heightCm){
-      if(heightCm<170) return {cm:80,label:'قصير'};
-      if(heightCm<=178) return {cm:82,label:'L32'};
-      if(heightCm<180) return {cm:84,label:'متوسط'};
-      return {cm:86,label:'L34'};
+      // الحدود مشتركة؛ نعتمد المقاس الأصغر عند 65 و75 و85 و95 كغ.
+      let index;
+      if(weightKg<=65) index=0;
+      else if(weightKg<=75) index=1;
+      else if(weightKg<=85) index=2;
+      else if(weightKg<=95) index=3;
+      else index=4;
+      const baseIndex=index;
+      if(heightCm<168) index=Math.max(0,index-1);
+      else if(heightCm>182) index=Math.min(sizes.length-1,index+1);
+      return { ...sizes[index], baseIndex, adjusted:index!==baseIndex };
     }
     form.addEventListener('submit',(event)=>{
       event.preventDefault();
       const height=Number(document.getElementById('height').value);
       const weight=Number(document.getElementById('weight').value);
       error.classList.remove('show');result.classList.remove('show');
-      if(!height||!weight||height<130||height>220||weight<35||weight>200){
-        error.textContent='يرجى إدخال طول بين 130 و220 سم ووزن بين 35 و200 كغ.';
+      if(!height||!weight||height<130||height>220||weight<55||weight>200){
+        error.textContent='يرجى إدخال طول بين 130 و220 سم ووزن بين 55 و200 كغ؛ الجدول لا يشمل وزناً أقل من 55 كغ.';
         error.classList.add('show');return;
       }
       const chosen=estimateSize(height,weight);
-      const length=estimateInseam(height);
       document.getElementById('size').textContent=chosen.size;
       document.getElementById('bodyStats').textContent=`${height} سم · ${weight} كغ`;
-      document.getElementById('inseam').textContent=`${length.cm} سم`;
-      document.getElementById('lengthLabel').textContent=length.label;
-      const bmi=weight/Math.pow(height/100,2);
-      const nearBoundary=[19,21,23,25,27].some(limit=>Math.abs(bmi-limit)<0.6);
-      document.getElementById('resultNote').textContent=nearBoundary?'قياساتك قريبة من الحد بين مقاسين؛ إذا كنت تفضّل وسعًا أكبر، اختر المقاس الأعلى.':'';
+      document.getElementById('waistLabel').textContent=`${chosen.waist} سم`;
+      document.getElementById('weightRange').textContent=chosen.min===55?'55–65 كغ':chosen.max===110?'أكثر من 95 كغ':`${chosen.min}–${chosen.max} كغ`;
+      document.getElementById('resultNote').textContent=chosen.adjusted?`تم تعديل المقاس درجة واحدة حسب الطول (${height<168?'أقل من 168 سم':'أكثر من 182 سم'}). المقاس المقترح تقديري.`:'عند حدود الوزن اعتمدنا المقاس الأصغر، كما طلبت. المقاس المقترح تقديري.';
       result.classList.add('show');
     });
   </script>
